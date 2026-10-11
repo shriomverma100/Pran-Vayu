@@ -69,12 +69,12 @@ Durga visarjan is on **Tuesday 20 October 2026**. Three years of MPPCB water tes
 
 The orange **Ask प्राण-वायु** button opens an assistant for an officer with no time to look around. It answers in English or Hindi **only from the platform's checked data**, cites the report page for each reading, never makes health claims, and can **act in the platform**: open a ghat's evidence, plan aerators and teams with the allocator (and explain the result), download a report, switch language, or go to a step. Each action shows as a short animated line in the chat.
 
-- Server function: [api/chat.ts](api/chat.ts) (Vercel) calls **Groq** (`openai/gpt-oss-120b`, OpenAI-compatible API). Answers arrive in about one second.
+- Server function: [api/chat.ts](api/chat.ts) (Vercel). It uses **Claude Opus 5.5** (`claude-opus-5-5`, official `@anthropic-ai/sdk`, low effort for quick replies, the API's server-side refusal fallback, and prompt caching of the data summary) when `ANTHROPIC_API_KEY` is set. If only `GROQ_API_KEY` is set, it uses Groq (`openai/gpt-oss-120b`) instead.
 - The browser sends a compact plain-text summary of the checked data, about 3,000 tokens with every oxygen, BOD and pH reading and its page ([src/lib/assistantContext.ts](src/lib/assistantContext.ts)). The rules live on the server.
 - **One model call per question.** When the model calls a tool, the browser runs it and writes the outcome itself; the aerator and team allocation comes straight from the tested allocator, not from the model's wording.
 - **Answer check:** every number in a reply is compared with the checked data; anything that doesn't match is flagged to the officer with a link to the proof.
-- **Accuracy over availability:** only the strongest model answers. In testing, smaller fallback models misread readings, so when Groq's free-tier limit (8,000 tokens a minute) is reached the officer is asked to retry in a minute.
-- **To switch it on:** Vercel project → Settings → Environment Variables → add `GROQ_API_KEY` → Redeploy. The key is never in the code, the repo or the browser.
+- **Tested end to end** on real questions in English and Hindi: Claude gave the correct readings and pages, refused to call water "safe", and used the allocator tool. In one follow-up it attached a correct number to the wrong year, which is why every answer points the officer to the proof.
+- **To switch it on:** Vercel project → Settings → Environment Variables → add `ANTHROPIC_API_KEY` (or `GROQ_API_KEY`) → Redeploy. Keys are never in the code, the repo or the browser.
 - It runs on the deployed site only; on `npm run dev` the panel explains this.
 
 ## Similar systems elsewhere
@@ -127,7 +127,7 @@ flowchart LR
     AI["Assistant panel"]
   end
   PDFOUT["Brief · profiles · method PDFs<br/>(Playwright, same templates)"]
-  API["api/chat.ts<br/>Groq gpt-oss-120b"]
+  API["api/chat.ts<br/>Claude Opus 5.5<br/>(or Groq)"]
   CSV --> CHECK
   CPCB --> CHECK
   MP --> CHECK
@@ -160,7 +160,7 @@ Measured on the production build in headless Chromium (`npm run bench`, desktop,
 | First-load JavaScript (gzip) | 101 kB |
 | JavaScript loaded after first paint (gzip) | 137 kB |
 | CSS (gzip) | 10 kB |
-| Assistant answer (Groq, measured end to end) | about 1 s |
+| Assistant answer, end to end | 2–8 s with Claude Opus 5.5 · about 1 s with Groq |
 
 Click feedback is CSS transform-only, so a press answers on the next frame; there is no smooth-scroll library and no backdrop blur.
 
@@ -229,11 +229,11 @@ Result (CPCB Class B, default weights):
 - Resource allocator, field sampling sheets, allocation order, 20 October reading entry with validation, CSV export and live re-ranking
 - PDFs: bilingual brief, ghat reports (English and Hindi), method and limits (English and Hindi); WhatsApp message with copy and share
 - Government-style top bar (skip link, text size, language), keyboard navigation, reduced-motion support
-- AI assistant on the deployed site once `GROQ_API_KEY` is set in Vercel
+- AI assistant on the deployed site once `ANTHROPIC_API_KEY` (or `GROQ_API_KEY`) is set in Vercel
 - Report dashboard: any report, language and ghat selection with a live A4 preview
 
 **Doesn't, or only partly**
-- **The AI assistant needs `GROQ_API_KEY` in Vercel** and an internet connection. On Groq's free tier it answers a few questions a minute, then asks the officer to wait. AI answers can be wrong: numbers that don't match the data are flagged, and the panel points to the proof.
+- **The AI assistant needs an API key in Vercel** and an internet connection. AI answers can be wrong: numbers that don't match the data are flagged, but a correct number with the wrong year is not caught, so the panel always points to the proof. On Groq's free tier it answers only a few questions a minute.
 - **BMC logo is not included.** No openly licensed copy was found, and downloading it from the BMC website would break the event's rule on government portals. Drop the official file at `src/assets/brand/bmc-logo.svg` (or `.png`) and it appears in the header and on every PDF.
 - **20 October readings stay in one browser.** There is no server, by design, so readings are not shared between officers; use the CSV export.
 - **Re-ranking with 20 October readings updates the scores and order only.** Blind-spot flags and the PDF brief still describe the 2023–2025 reports.
@@ -273,13 +273,13 @@ All data comes from the official participant pack ([Laaaaksh/bhopal-impact-lab-2
 
 ## Built with
 
-TypeScript · React · Vite · Tailwind CSS · Motion (animation) · Groq (assistant, `openai/gpt-oss-120b`) · d3-scale (chart maths, all charts are hand-built SVG) · Zod (row checks) · PapaParse · pdf.js (receipt check) · Playwright (PDFs) · Vitest. Fonts: Yatra One (the name), Inter, Noto Sans Devanagari, all bundled for offline use. Built with Claude Code.
+TypeScript · React · Vite · Tailwind CSS · Motion (animation) · Claude Opus 5.5 via the Anthropic SDK (assistant; Groq optional) · d3-scale (chart maths, all charts are hand-built SVG) · Zod (row checks) · PapaParse · pdf.js (receipt check) · Playwright (PDFs) · Vitest. Fonts: Yatra One (the name), Inter, Noto Sans Devanagari, all bundled for offline use. Built with Claude Code.
 
 ```
 data/                 official CSVs, unchanged
 public/reports/       the three MPPCB report PDFs (Verify links open these)
 public/pdfs/          generated PDFs (npm run pdf)
-api/chat.ts           AI assistant (Vercel function, Groq; key from GROQ_API_KEY)
+api/chat.ts           AI assistant (Vercel function; Claude via ANTHROPIC_API_KEY, or Groq via GROQ_API_KEY)
 scripts/              build-data (checks + scoring), verify-receipts, build-pdfs, screenshot
 src/core/             data rules, scoring, robustness, statewide, allocator, field entries (no UI; tested)
 src/components/       design system, charts, views, print templates

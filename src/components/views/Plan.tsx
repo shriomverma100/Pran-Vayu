@@ -11,6 +11,7 @@ import type { StringKey } from '../../i18n/strings'
 import { ghatName, paramLabel } from '../../lib/labels'
 import { useStoredState } from '../../lib/useStoredState'
 import { Icon } from '../icons'
+import { AllocationOrderDoc } from '../print/Docs'
 import { PrintPage, usePrintDoc } from '../print/PrintDoc'
 import { ACTION_ICON, StatusChip, TierBadge } from '../ui/Badges'
 import { Button, IconButton } from '../ui/Button'
@@ -379,7 +380,14 @@ export function Plan() {
       </motion.div>
 
       <motion.section variants={rise} className="space-y-5">
-        <SectionTitle title={t('alloc.title')} />
+        <SectionTitle
+          title={t('alloc.title')}
+          right={
+            <Button variant="ink" icon="print" disabled={!plan.aerators.length && !plan.teams.length} onClick={() => print(<AllocationOrderDoc plan={plan} aerators={aerators} teams={teams} />)}>
+              {t('order.print')}
+            </Button>
+          }
+        />
         <div className="grid gap-4 md:grid-cols-2">
           <Stepper label={t('alloc.aerators')} value={aerators} onChange={setAerators} icon="aerator" />
           <Stepper label={t('alloc.teams')} value={teams} onChange={setTeams} icon="team" />

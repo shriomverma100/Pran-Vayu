@@ -57,7 +57,7 @@
     text-rendering: optimizeLegibility;
   }
 
-  html[lang="hi"] body {
+  [lang="hi"] {
     font-family: var(--font-hindi);
   }
 
@@ -142,14 +142,14 @@
 
 /* Devanagari is never letter-spaced or upper-cased: spacing breaks the शिरोरेखा
    (the headline that joins the letters). */
-html[lang="hi"] .eyebrow,
-html[lang="hi"] .tracking-wide,
-html[lang="hi"] .tracking-wider,
-html[lang="hi"] .tracking-tight {
+[lang="hi"] .eyebrow,
+[lang="hi"] .tracking-wide,
+[lang="hi"] .tracking-wider,
+[lang="hi"] .tracking-tight {
   letter-spacing: 0;
   text-transform: none;
 }
-html[lang="hi"] .eyebrow {
+[lang="hi"] .eyebrow {
   font-size: 0.82rem;
 }
 

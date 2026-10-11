@@ -16,7 +16,7 @@ const today = (lang: string) =>
 export function PrintPage({ title, docRef, page, total, children }: { title: string; docRef: string; page: number; total: number; children: ReactNode }) {
   const { lang, t } = useLang()
   return (
-    <section className="print-page relative mx-auto flex h-[297mm] w-[210mm] flex-col bg-white px-[14mm] pt-[11mm] pb-[9mm] text-ink">
+    <section lang={lang} className="print-page relative mx-auto flex h-[297mm] w-[210mm] flex-col bg-white px-[14mm] pt-[11mm] pb-[9mm] text-ink">
       <header className="flex items-center justify-between border-b-[3px] border-ink pb-3">
         <div className="flex items-center gap-4">
           <Emblems height={40} />

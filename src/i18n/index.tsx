@@ -35,8 +35,8 @@ export function LangProvider({ children, forceLang }: { children: ReactNode; for
   const [lang, setLangState] = useState<Lang>(() => forceLang ?? initialLang())
 
   useEffect(() => {
-    document.documentElement.lang = lang
-  }, [lang])
+    if (!forceLang) document.documentElement.lang = lang
+  }, [lang, forceLang])
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l)

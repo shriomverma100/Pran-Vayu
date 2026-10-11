@@ -1,9 +1,8 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { useRef, useState, type ReactNode } from 'react'
+import { useRef, useState } from 'react'
 import DesignSystem from './components/DesignSystem'
 import { IntroSplash, shouldPlayIntro } from './components/shell/IntroSplash'
 import { Footer, Header, UtilityBar } from './components/shell/Shell'
-import { Card, SectionTitle } from './components/ui/Card'
 import { EASE_OUT } from './components/ui/motion'
 import { Tabs } from './components/ui/Tabs'
 import { Drawer } from './components/ui/Drawer'
@@ -11,7 +10,8 @@ import { GhatDetail } from './components/views/GhatDetail'
 import { Ghats } from './components/views/Ghats'
 import { Overview } from './components/views/Overview'
 import { Plan } from './components/views/Plan'
-import { HonestyBox, MethodCard } from './components/views/Trust'
+import { Reports } from './components/views/Reports'
+import { PrintRoute } from './components/print/PrintRoute'
 import { GHAT_BY_ID, SCORE_BY_ID } from './data'
 import { ghatName } from './lib/labels'
 import { useLang } from './i18n'
@@ -26,6 +26,7 @@ export default function App() {
   const brandRef = useRef<HTMLSpanElement>(null)
 
   if (route.tab === 'design') return <DesignSystem />
+  if (route.tab === 'print') return <PrintRoute doc={route.detail} />
   const tab = route.tab as TabId
   const openGhat = (id: string) => go(tab, id)
   const detail = route.detail && GHAT_BY_ID.has(route.detail) ? route.detail : null
@@ -65,13 +66,7 @@ export default function App() {
             {tab === 'overview' && <Overview onOpen={openGhat} />}
             {tab === 'ghats' && <Ghats onOpen={openGhat} />}
             {tab === 'plan' && <Plan />}
-            {tab === 'reports' && (
-              <div className="space-y-10">
-                <Placeholder title={t('tab.reports')} phase={8} />
-                <HonestyBox />
-                <MethodCard />
-              </div>
-            )}
+            {tab === 'reports' && <Reports onPlan={() => go('plan')} />}
           </motion.div>
         </AnimatePresence>
       </main>
@@ -89,16 +84,5 @@ export default function App() {
 
       <AnimatePresence>{intro && <IntroSplash targetRef={brandRef} onDone={() => setIntro(false)} />}</AnimatePresence>
     </>
-  )
-}
-
-function Placeholder({ title, phase }: { title: ReactNode; phase: number }) {
-  return (
-    <div className="space-y-6">
-      <SectionTitle eyebrow={`Phase ${phase}`} title={title} lede="This tab's content is built in its phase. The shell, navigation, language and text size already work." />
-      <Card tone="paper" shadow="sm" className="grid min-h-48 place-items-center border-dashed p-8 text-grey-600">
-        Phase {phase}
-      </Card>
-    </div>
   )
 }

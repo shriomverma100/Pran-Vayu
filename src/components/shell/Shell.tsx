@@ -39,6 +39,13 @@ export function UtilityBar() {
     <div className="no-print bg-ink text-white">
       <a
         href="#main"
+        onClick={(e) => {
+          // Move focus to the content without changing the hash, which holds the current tab.
+          e.preventDefault()
+          const main = document.getElementById('main')
+          main?.focus()
+          main?.scrollIntoView({ block: 'start' })
+        }}
         className="absolute left-3 top-2 z-[60] -translate-y-20 border-2 border-white bg-orange px-3 py-1.5 text-sm font-bold text-ink transition-transform focus:translate-y-0"
       >
         {t('ui.skip')}

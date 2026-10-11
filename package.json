@@ -14,7 +14,8 @@
     "test": "vitest run",
     "pdf": "tsx scripts/build-pdfs.ts",
     "verify": "tsx scripts/verify-receipts.ts",
-    "shot": "tsx scripts/screenshot.ts"
+    "shot": "tsx scripts/screenshot.ts",
+    "verify:all": "npm run data && npm run verify && npm test"
   },
   "dependencies": {
     "d3-scale": "^4.0.2",
@@ -48,5 +49,8 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.4",
     "vitest": "^5.0.3"
+  },
+  "engines": {
+    "node": ">=22.12"
   }
 }

@@ -1,11 +1,21 @@
-import { describe, expect, it } from 'vitest'
-import data from '../src/generated/data.json'
-import type { GhatInfo } from '../src/core/constants'
-import type { GhatScore } from '../src/core/scoring'
+import { readFileSync } from 'node:fs'
+import Papa from 'papaparse'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { GHATS } from '../src/core/constants'
+import { BhopalRowSchema, CpcbRowSchema, limitsForClass, parseLimit, toReading } from '../src/core/readings'
+import { scoreGhats, type GhatScore } from '../src/core/scoring'
 import { briefMessage } from '../src/lib/brief'
 
-const scores = data.scores as unknown as GhatScore[]
-const ghats = new Map((data.ghats as GhatInfo[]).map((g) => [g.id, g]))
+// Built from the official CSVs, like every other test, so it runs in a fresh clone.
+const csv = (f: string) => Papa.parse<Record<string, string>>(readFileSync(f, 'utf8'), { header: true, skipEmptyLines: true }).data
+const ghats = new Map(GHATS.map((g) => [g.id, g]))
+let scores: GhatScore[]
+
+beforeAll(() => {
+  const limits = csv('data/cpcb_water_quality_criteria.csv').map((r) => parseLimit(CpcbRowSchema.parse(r)))
+  const readings = csv('data/bhopal_ghats_2023_2025.csv').map((r) => toReading(BhopalRowSchema.parse(r), limitsForClass(limits, 'B')))
+  scores = scoreGhats(readings, limits)
+})
 
 describe('WhatsApp brief', () => {
   it('English: top 3 in rank order, blind spots, and the honesty line', () => {

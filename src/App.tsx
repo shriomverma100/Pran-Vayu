@@ -10,6 +10,8 @@ import { Drawer } from './components/ui/Drawer'
 import { GhatDetail } from './components/views/GhatDetail'
 import { Ghats } from './components/views/Ghats'
 import { Overview } from './components/views/Overview'
+import { Plan } from './components/views/Plan'
+import { HonestyBox, MethodCard } from './components/views/Trust'
 import { GHAT_BY_ID, SCORE_BY_ID } from './data'
 import { ghatName } from './lib/labels'
 import { useLang } from './i18n'
@@ -62,8 +64,14 @@ export default function App() {
           >
             {tab === 'overview' && <Overview onOpen={openGhat} />}
             {tab === 'ghats' && <Ghats onOpen={openGhat} />}
-            {tab === 'plan' && <Placeholder title={t('tab.plan')} phase={7} />}
-            {tab === 'reports' && <Placeholder title={t('tab.reports')} phase={8} />}
+            {tab === 'plan' && <Plan />}
+            {tab === 'reports' && (
+              <div className="space-y-10">
+                <Placeholder title={t('tab.reports')} phase={8} />
+                <HonestyBox />
+                <MethodCard />
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
       </main>

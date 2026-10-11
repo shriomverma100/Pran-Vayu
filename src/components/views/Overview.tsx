@@ -14,6 +14,7 @@ import { Card, CardHeader, SectionTitle } from '../ui/Card'
 import { CoverageBar } from '../ui/CoverageBar'
 import { rise, stagger } from '../ui/motion'
 import { StatTile } from '../ui/StatTile'
+import { HonestyBox } from './Trust'
 
 export function Overview({ onOpen }: { onOpen: (ghatId: string) => void }) {
   const { lang, t } = useLang()
@@ -159,6 +160,10 @@ export function Overview({ onOpen }: { onOpen: (ghatId: string) => void }) {
         <Card className="p-5">
           <Dumbbell onOpen={onOpen} />
         </Card>
+      </motion.section>
+
+      <motion.section variants={rise}>
+        <HonestyBox compact />
       </motion.section>
     </motion.div>
   )

@@ -152,3 +152,17 @@ html[lang="hi"] .tracking-tight {
 html[lang="hi"] .eyebrow {
   font-size: 0.82rem;
 }
+
+/* Printed documents: rendered into .print-root; the app is hidden while printing. */
+@media screen {
+  .print-root { display: none; }
+}
+@media print {
+  @page { size: A4; margin: 0; }
+  body[data-printing] #root { display: none !important; }
+  body[data-printing] { background: #fff !important; }
+  .print-root { display: block; }
+  .print-page { break-after: page; }
+  .print-page:last-child { break-after: auto; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

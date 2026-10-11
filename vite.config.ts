@@ -7,4 +7,9 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   base: './',
   plugins: [react(), tailwindcss()],
+  build: {
+    // The checked dataset (1,524 readings with receipts) is bundled so the tool
+    // works offline; that puts the main chunk near 1 MB (about 190 kB gzipped).
+    chunkSizeWarningLimit: 1200,
+  },
 })

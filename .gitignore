@@ -12,3 +12,4 @@ playwright-report/
 *.tsbuildinfo
 src/generated/
 *.tmp.mjs
+.shots/

@@ -9,7 +9,7 @@ Claude Impact Lab × Cerebras Café Compute, Bhopal · 11 October 2026 · **Trac
 | **Member** | Shriom Verma |
 | **Track** | Track 2: Visarjan Ghat Watch |
 | **The one user** | The Bhopal Municipal Corporation officer who plans Durga visarjan at the ghats and decides where to send extra cleaning, aeration and water testing |
-| **Live site** | https://shriomverma100.github.io/Pran-Vayu/ (published by the Pages workflow once the repo is public and Pages is enabled) |
+| **Live site** | Deployed on Vercel from this repo (every push to main redeploys) |
 
 ![Opening](docs/screenshots/01-opening.jpg)
 

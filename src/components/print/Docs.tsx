@@ -259,11 +259,12 @@ function GhatReportPage({ ghatId, page, total }: { ghatId: string; page: number;
   )
 }
 
-export function GhatReportsDoc() {
+export function GhatReportsDoc({ ghatIds }: { ghatIds?: string[] }) {
+  const list = DATA.scores.filter((s) => !ghatIds || ghatIds.includes(s.ghatId))
   return (
     <>
-      {DATA.scores.map((s, i) => (
-        <GhatReportPage key={s.ghatId} ghatId={s.ghatId} page={i + 1} total={DATA.scores.length} />
+      {list.map((s, i) => (
+        <GhatReportPage key={s.ghatId} ghatId={s.ghatId} page={i + 1} total={list.length} />
       ))}
     </>
   )

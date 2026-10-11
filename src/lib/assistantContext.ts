@@ -22,7 +22,7 @@ export function buildAssistantContext(): string {
   const doM = DATA.readings.filter((r) => r.parameter === 'Dissolved oxygen' && r.kind === 'measured')
   const bodM = DATA.readings.filter((r) => r.parameter === 'BOD' && r.kind === 'measured')
   lines.push(
-    'Data: MPPCB Ganesh and Durga visarjan water tests 2023, 2024, 2025 at 7 Bhopal ghats; tests before immersion (pre), during, and one week after (after).',
+    'Data: MPPCB Ganesh and Durga visarjan water tests 2023, 2024, 2025 at 7 Bhopal ghats. Reading lines use: 23G = 2023 Ganesh, 24D = 2024 Durga; values are before/during/one-week-after immersion; "-" = not tested; p26 = page 26 of that year\'s MPPCB report (cite as "2023 report, p.26"); no-table = the report has no table for it.',
     `Overall: oxygen below 5 mg/l in ${doM.filter((r) => (r.value as number) < 5).length} of ${doM.length} readings; BOD above 3 in ${bodM.filter((r) => (r.value as number) > 3).length} of ${bodM.length}; oxygen 0 in 4 readings, all at Bairagarh. Every ghat broke the BOD limit.`,
     'Scoring: risk score 0-100 = 50% oxygen + 30% BOD + 20% pH; a breach scores 50 plus up to 50 for how far past the limit; Durga x1.5, 2024 x1.25, 2025 x1.5. Act now = score 55+ or any oxygen below 2; High = 30+; Moderate below 30.',
     'Robustness: ranking recomputed under 24 scoring choices (CPCB classes B/C/D, Durga weight, year weight, parameter weights).',
@@ -48,10 +48,10 @@ export function buildAssistantContext(): string {
         for (const f of FESTIVALS) {
           const rs = PHASES.map((p) => READING_BY_ID.get(readingId(y, f, s.ghatId, p, param)))
           const page = rs.find((r) => r)?.page
-          const vals = rs.map((r) => (!r || r.kind === 'missing' ? 'not tested' : r.kind === 'below-detection' ? r.printed : String(r.value)))
-          parts.push(`${y} ${f} ${vals.join('/')}${page ? ` (${y} report, p.${page})` : ' (no table in report)'}`)
+          const vals = rs.map((r) => (!r || r.kind === 'missing' ? '-' : r.kind === 'below-detection' ? r.printed : String(r.value)))
+          parts.push(`${String(y).slice(2)}${f[0]} ${vals.join('/')}${page ? ` p${page}` : ' no-table'}`)
         }
-      lines.push(`${code} [${unit}] pre/during/after: ${parts.join('; ')}`)
+      lines.push(`${code} [${unit}]: ${parts.join('; ')}`)
     }
     lines.push('')
   }

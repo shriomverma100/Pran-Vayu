@@ -355,7 +355,7 @@ const en = {
   'ai.did.plan': "Planned {a} aerators and {t} teams",
   'ai.did.download': "Download started",
   'ai.did.go': "Screen changed",
-  'ai.err.config': "The assistant is not switched on yet: the ANTHROPIC_API_KEY must be set in the Vercel project.",
+  'ai.err.config': "The assistant is not switched on yet: GROQ_API_KEY must be set in the Vercel project, then redeploy.",
   'ai.err.local': "The assistant runs on the deployed site (Vercel). It is not available on the local dev server.",
   'ai.err.busy': "The assistant could not answer just now. Please try again.",
   'ai.err.refusal': "The assistant declined this request.",
@@ -372,6 +372,7 @@ const en = {
   'rd.order.desc': "Each aerator and sampling team with its ghat and the reason, from the Send teams step.",
   'rd.sheets.desc': "One A4 sheet per ghat with a team: 13 tests, limits, last readings and boxes for 20 and 27 October.",
   'rd.fromPlan': "Made from your plan: {a} aerators and {t} sampling teams.",
+  'ai.check': "Check before use: {n} does not match the checked data. Open See proof to verify.",
 } as const
 
 export type StringKey = keyof typeof en
@@ -717,7 +718,7 @@ const hi: Record<StringKey, string> = {
   'ai.did.plan': "{a} एरेटर और {t} दलों की योजना बनाई",
   'ai.did.download': "डाउनलोड शुरू",
   'ai.did.go': "स्क्रीन बदली",
-  'ai.err.config': "सहायक अभी चालू नहीं है: Vercel प्रोजेक्ट में ANTHROPIC_API_KEY सेट करनी होगी।",
+  'ai.err.config': "सहायक अभी चालू नहीं है: Vercel प्रोजेक्ट में GROQ_API_KEY सेट कर फिर से डिप्लॉय करें।",
   'ai.err.local': "सहायक तैनात साइट (Vercel) पर चलता है, स्थानीय सर्वर पर नहीं।",
   'ai.err.busy': "सहायक अभी उत्तर नहीं दे सका। कृपया फिर कोशिश करें।",
   'ai.err.refusal': "सहायक ने यह अनुरोध अस्वीकार किया।",
@@ -734,6 +735,7 @@ const hi: Record<StringKey, string> = {
   'rd.order.desc': "\"दल भेजें\" चरण से हर एरेटर और नमूना दल, घाट और कारण सहित।",
   'rd.sheets.desc': "दल वाले हर घाट की एक A4 शीट: 13 जाँचें, सीमाएँ, पिछली रीडिंग और 20 व 27 अक्टूबर के खाने।",
   'rd.fromPlan': "आपकी योजना से बना: {a} एरेटर और {t} नमूना दल।",
+  'ai.check': "उपयोग से पहले जाँचें: {n} जाँचे गए डेटा से मेल नहीं खाता। 'प्रमाण देखें' से मिलाएँ।",
 }
 
 export const STRINGS: Record<'en' | 'hi', Record<StringKey, string>> = { en, hi }

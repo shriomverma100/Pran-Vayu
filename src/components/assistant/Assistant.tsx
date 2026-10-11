@@ -11,11 +11,15 @@ import { writeStored } from '../../lib/useStoredState'
 import { Icon } from '../icons'
 import { SPRING_PANEL } from '../ui/motion'
 
-// The assistant panel. Conversation turns are kept exactly as the API returned
-// them and sent back unchanged; tool calls run here in the browser.
+// The assistant panel. Messages use the OpenAI-compatible chat format that
+// Groq serves (api/chat.ts). Tool calls run here in the browser and their
+// results go back as "tool" messages.
 
-type Block = { type: string; text?: string; id?: string; name?: string; input?: Record<string, unknown> }
-type ApiMessage = { role: 'user' | 'assistant'; content: string | Block[] | { type: 'tool_result'; tool_use_id: string; content: string }[] }
+type ToolCall = { id: string; type: 'function'; function: { name: string; arguments: string } }
+type ApiMessage =
+  | { role: 'user'; content: string }
+  | { role: 'assistant'; content: string; tool_calls?: ToolCall[] }
+  | { role: 'tool'; tool_call_id: string; content: string }
 type Shown = { id: number; kind: 'user' | 'assistant' | 'action' | 'error'; text: string }
 
 const SCREEN: Record<string, TabId> = {
@@ -33,6 +37,24 @@ const FILES: Record<string, (lang: string) => string> = {
 }
 
 let nextId = 1
+
+/**
+ * Number check: every number in an answer must appear in the checked data
+ * the assistant was given (or in the question). Small counts (0-24) and
+ * years are always allowed. Returns the numbers that could not be matched.
+ */
+function unmatchedNumbers(answer: string, context: string, question: string): string[] {
+  const known = new Set([...context.matchAll(/\d+(?:\.\d+)?/g), ...question.matchAll(/\d+(?:\.\d+)?/g)].map((m) => String(Number(m[0]))))
+  const found = [...answer.replace(/[०-९]/g, (d) => String('०१२३४५६७८९'.indexOf(d))).matchAll(/\d+(?:\.\d+)?/g)].map((m) => String(Number(m[0])))
+  return [...new Set(found)].filter((n) => !known.has(n) && !(Number(n) <= 24 && Number.isInteger(Number(n))) && !/^20[2-3]\d$/.test(n))
+}
+
+/** The last few turns, starting at a user message, to stay within the token budget. */
+function recent(h: ApiMessage[]): ApiMessage[] {
+  const from = Math.max(0, h.length - 8)
+  const start = h.findIndex((m, i) => i >= from && m.role === 'user')
+  return h.slice(start === -1 ? from : start)
+}
 
 export function Assistant({ go, openGhat }: { go: (tab: TabId, detail?: string) => void; openGhat: (id: string) => void }) {
   const { lang, setLang, t } = useLang()
@@ -106,6 +128,19 @@ export function Assistant({ go, openGhat }: { go: (tab: TabId, detail?: string) 
     return 'Unknown tool.'
   }
 
+  /** The allocation in plain words, from the allocator itself. */
+  const planSummary = (a: number, tm: number) => {
+    const plan = allocate(DATA.scores, Math.min(10, a), Math.min(10, tm))
+    const name = (id: string) => ghatName(GHAT_BY_ID.get(id)!, lang)
+    const lines = [
+      ...plan.aerators.map((x) => `${t('alloc.aerator.unit', { n: x.unit })} → ${name(x.ghatId)}: ${t(`aer.${x.reason}` as StringKey, x.values)}`),
+      ...plan.teams.map((x) => `${t('alloc.team.unit', { n: x.unit })} → ${name(x.ghatId)}: ${t(`test.${x.reason}` as StringKey, x.values)}`),
+    ]
+    if (plan.unservedAeration.length) lines.push(t('alloc.unserved.aer', { list: plan.unservedAeration.map(name).join(', ') }))
+    if (plan.unservedTesting.length) lines.push(t('alloc.unserved.test', { list: plan.unservedTesting.map(name).join(', ') }))
+    return lines.join('\n')
+  }
+
   const ask = async (question: string) => {
     const q = question.trim()
     if (!q || busy) return
@@ -118,7 +153,7 @@ export function Assistant({ go, openGhat }: { go: (tab: TabId, detail?: string) 
         const r = await fetch('api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: history.current, context }),
+          body: JSON.stringify({ messages: recent(history.current), context }),
         })
         if (!r.ok) {
           const err = await r.json().catch(() => ({}))
@@ -126,22 +161,36 @@ export function Assistant({ go, openGhat }: { go: (tab: TabId, detail?: string) 
           history.current.pop()
           break
         }
-        const data = (await r.json()) as { content: Block[]; stop_reason: string }
-        history.current.push({ role: 'assistant', content: data.content })
-        const text = data.content
-          .filter((b) => b.type === 'text' && b.text)
-          .map((b) => b.text)
-          .join('\n')
-          .trim()
-        if (text) show('assistant', text)
-        if (data.stop_reason === 'refusal') {
-          show('error', t('ai.err.refusal'))
-          break
+        const data = (await r.json()) as { message: { content: string; tool_calls?: ToolCall[] }; finish_reason: string }
+        const calls = data.message.tool_calls ?? []
+        history.current.push({ role: 'assistant', content: data.message.content ?? '', ...(calls.length ? { tool_calls: calls } : {}) })
+        const text = (data.message.content ?? '').trim()
+        if (text) {
+          show('assistant', text)
+          const odd = unmatchedNumbers(text, context, q)
+          if (odd.length) show('error', t('ai.check', { n: odd.join(', ') }))
         }
-        const calls = data.content.filter((b) => b.type === 'tool_use')
-        if (data.stop_reason !== 'tool_use' || !calls.length) break
-        const results = calls.map((c) => ({ type: 'tool_result' as const, tool_use_id: c.id!, content: runTool(c.name!, c.input ?? {}) }))
-        history.current.push({ role: 'user', content: results })
+        if (!calls.length) break
+        // One model call per question: the tools run here and the browser writes
+        // the outcome itself (the allocation comes straight from the tested allocator).
+        const summaries: string[] = []
+        for (const c of calls) {
+          let args: Record<string, unknown> = {}
+          try {
+            args = JSON.parse(c.function.arguments || '{}')
+          } catch {
+            args = {}
+          }
+          const result = runTool(c.function.name, args)
+          history.current.push({ role: 'tool', tool_call_id: c.id, content: result })
+          if (c.function.name === 'plan_resources') summaries.push(planSummary(Number(args.aerators) || 0, Number(args.teams) || 0))
+        }
+        if (summaries.length) {
+          const summary = summaries.join('\n\n')
+          show('assistant', summary)
+          history.current.push({ role: 'assistant', content: summary })
+        } else history.current.push({ role: 'assistant', content: 'Done.' })
+        break
       }
     } catch {
       show('error', t('ai.err.busy'))

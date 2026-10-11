@@ -14,6 +14,7 @@ import Papa from 'papaparse'
 import { z } from 'zod'
 import { GHATS, REPORTS, SLOTS_PER_GHAT } from '../src/core/constants'
 import { runGuards } from '../src/core/guards'
+import { DEFAULT_CONFIG, scoreGhats } from '../src/core/scoring'
 import {
   BhopalRowSchema,
   CpcbRowSchema,
@@ -104,6 +105,11 @@ for (const g of GHATS) {
   console.log(`  ${g.name.padEnd(40)} ${tested}/${SLOTS_PER_GHAT}${partial ? `  (${partial} partial)` : ''}`)
 }
 
+// --- Scores --------------------------------------------------------------
+const scores = scoreGhats(readings, limits, DEFAULT_CONFIG)
+console.log('\nRanking (CPCB Class B, default weights)')
+for (const s of scores) console.log(`  #${s.rank} ${GHATS.find((g) => g.id === s.ghatId)!.name.padEnd(40)} ${String(s.score).padStart(5)}  ${s.tier.padEnd(9)} ${s.action}`)
+
 // --- Fingerprint and output ----------------------------------------------
 const files = [fingerprint(FILES.bhopal), fingerprint(FILES.cpcb), fingerprint(FILES.statewide)]
 const combined = createHash('sha256').update(files.map((f) => f.sha256).join('')).digest('hex')
@@ -125,6 +131,8 @@ const output = {
   limits,
   readings,
   coverage,
+  config: DEFAULT_CONFIG,
+  scores,
 }
 
 mkdirSync(OUT_DIR, { recursive: true })

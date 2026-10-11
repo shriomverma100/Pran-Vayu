@@ -1,0 +1,58 @@
+@import "tailwindcss";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/inter/800.css";
+@import "@fontsource/noto-sans-devanagari/400.css";
+@import "@fontsource/noto-sans-devanagari/600.css";
+@import "@fontsource/noto-sans-devanagari/700.css";
+@import "@fontsource/yatra-one/400.css";
+
+/* Palette: orange, white, black and greys only. */
+@theme {
+  --color-paper: #FAFAF7;
+  --color-ink: #111111;
+  --color-grey-50: #F5F5F3;
+  --color-grey-100: #F0F0F0;
+  --color-grey-200: #E5E5E5;
+  --color-grey-300: #D4D4D4;
+  --color-grey-400: #BDBDBD;
+  --color-grey-500: #8A8A8A;
+  --color-grey-600: #737373;
+  --color-grey-800: #3A3A3A;
+  --color-orange-tint: #FFF1E6;
+  --color-orange-soft: #FFD9B8;
+  --color-orange: #EA6A0A;
+  --color-orange-deep: #9A3F00;
+
+  --font-sans: "Inter", "Noto Sans Devanagari", system-ui, sans-serif;
+  --font-hindi: "Noto Sans Devanagari", "Inter", sans-serif;
+  --font-brand: "Yatra One", "Noto Sans Devanagari", serif;
+
+  --shadow-brut: 4px 4px 0 0 #111111;
+  --shadow-brut-sm: 2px 2px 0 0 #111111;
+  --shadow-brut-lg: 6px 6px 0 0 #111111;
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+html[lang="hi"] body {
+  font-family: var(--font-hindi);
+}
+
+.font-brand {
+  font-family: var(--font-brand);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

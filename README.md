@@ -9,7 +9,7 @@ Claude Impact Lab × Cerebras Café Compute, Bhopal · 11 October 2026 · **Trac
 | **Member** | Shriom Verma |
 | **Track** | Track 2: Visarjan Ghat Watch |
 | **The one user** | The Bhopal Municipal Corporation officer who plans Durga visarjan at the ghats and decides where to send extra cleaning, aeration and water testing |
-| **Live site** | Deployed on Vercel from this repo (every push to main redeploys) |
+| **Live site** | https://pran-vayu-12vepjdot-theta-172.vercel.app (Vercel; every push to main redeploys) |
 
 ![Opening](docs/screenshots/01-opening.jpg)
 
@@ -17,7 +17,16 @@ Claude Impact Lab × Cerebras Café Compute, Bhopal · 11 October 2026 · **Trac
 
 Durga visarjan is on **Tuesday 20 October 2026**. Three years of MPPCB water tests at Bhopal's ghats sit in 90 to 120 page PDF reports. प्राण-वायु turns them into one decision for the officer: **which ghats need action first, what action, and why**, with every number traceable to the report page it came from.
 
-**One workflow:** open the platform → see the ranked ghats and the action for each → send aerators and sampling teams → forward the Hindi + English brief.
+**One workflow, four numbered steps** (the tabs follow them, so a non-technical officer always knows where they are):
+
+| Step | Screen | What the officer does |
+|---|---|---|
+| **1** | **What to do** | Reads seven rows: each ghat's action and the reason in one line. Blind spots are flagged. "See proof" opens every reading behind it |
+| **2** | **Send teams** | Says "I have 3 aerators and 2 sampling teams"; each goes to a ghat with the reason; prints the allocation order |
+| **3** | **Test on 20 Oct** | Prints field sampling sheets for the ghats we know least about |
+| **4** | **Update** | Enters the 20 October readings; the ranking updates at once and a **Today** status appears on step 1 |
+
+**Evidence** (matrix, charts, robustness, statewide comparison, a *Check this tool* panel for organisers) and **Reports** (a report dashboard with live A4 preview) sit apart from the officer's steps. The **Brief PDF** button is in the header on every screen. An **AI assistant** answers questions and does tasks for the officer (see below).
 
 | | What the officer gets |
 |---|---|
@@ -37,14 +46,42 @@ Durga visarjan is on **Tuesday 20 October 2026**. Three years of MPPCB water tes
 6. **It keeps working on 20 October.** Officers enter the new readings; the ranking updates live and exports as CSV for MPPCB.
 7. **Every number has a receipt.** An automated check opens the three MPPCB PDFs and confirms each of the 1,467 printed values appears on the page it cites.
 
+## AI assistant
+
+The orange **Ask प्राण-वायु** button opens an assistant for an officer with no time to look around. It answers in English or Hindi **only from the platform's checked data**, cites the report page for each reading, never makes health claims, and can **act in the platform**: open a ghat's evidence, plan aerators and teams with the allocator (and explain the result), download a report, switch language, or go to a step. Each action shows as a short animated line in the chat.
+
+- Server function: [api/chat.ts](api/chat.ts) (Vercel), official `@anthropic-ai/sdk`, model `claude-opus-5-5` at low effort for quick replies, with the API's server-side refusal fallback enabled.
+- The browser sends a plain-text summary of the checked data ([src/lib/assistantContext.ts](src/lib/assistantContext.ts)); the rules live on the server.
+- **To switch it on:** Vercel project → Settings → Environment Variables → add `ANTHROPIC_API_KEY` → Redeploy. The key is never in the code or the browser.
+- It runs on the deployed site only; on `npm run dev` the panel explains this.
+
+## Similar systems elsewhere
+
+| Where | What they built | What प्राण-वायु takes from it |
+|---|---|---|
+| **UK** (Environment Agency, "Swimfo") | Each bathing water is classified, with same-day pollution-risk warnings | The **Today** status on step 1 once 20 October readings are entered |
+| **European Union** (Bathing Water Directive) | Sites tested each season, rated against limits, each with a public **bathing water profile** | Ratings against CPCB limits and one-page **ghat profiles** |
+| **USA** (EPA BEACH Act; e.g. Chicago) | Beach advisories, some driven by same-day prediction models | Listed under next steps (needs rain/weather data we don't have) |
+| **India** (CPCB idol-immersion guidelines; Kumbh Mela monitoring) | Water tested before, during and after immersion; monitoring stations at mass bathing events | This is the source of our data; the platform turns those tests into decisions |
+
+Those systems test and warn. प्राण-वायु adds the decision: **where to send the officer's limited aerators and sampling teams, and where to test the places we are blind to, on visarjan day itself.**
+
+## Next steps
+
+- Same-day risk prediction from rainfall and temperature (as UK and US beach systems do), once weather data is added
+- Sensor feeds into step 4 instead of manual entry (as at Kumbh Mela monitoring stations)
+- A checklist of the CPCB idol-immersion guideline measures per ghat, checked against the official text
+- Bacteria (coliform) tests at the ghats, without which no health statement can be made
+- Ghat coordinates and a map; the official BMC logo; review of the Hindi text by BMC staff
+
 ## Screenshots
 
-| Overview | Ghats ranked |
+| ① What to do | Evidence |
 |---|---|
 | ![Overview](docs/screenshots/02-overview.jpg) | ![Ghats](docs/screenshots/04-ghats.jpg) |
-| **Ghat detail: every reading with its report page** | **Plan for 20 October** |
+| **See proof: every reading with its report page** | **② Send teams** |
 | ![Detail](docs/screenshots/05-ghat-detail.jpg) | ![Plan](docs/screenshots/06-plan.jpg) |
-| **हिंदी** | **Brief PDF (English + हिंदी)** |
+| **हिंदी** | **Report dashboard** |
 | ![Hindi](docs/screenshots/07-hindi.jpg) | ![Brief](docs/screenshots/08-brief-pdf.jpg) |
 
 ## How to run it
@@ -98,14 +135,17 @@ Result (CPCB Class B, default weights):
 ## What works and what doesn't
 
 **Works**
-- Overview, Ghats, Plan for 20 Oct and Reports tabs, in English (default) and Hindi
+- The four officer steps (What to do, Send teams, Test on 20 Oct, Update), Evidence and Reports, in English (default) and Hindi
 - Ranking, actions, reasons, Verify links to report pages, test coverage, rank stability, statewide comparison
 - Ghat × test matrix, before/after-immersion chart, per-festival charts, full evidence table (scored tests or all 13)
 - Resource allocator, field sampling sheets, allocation order, 20 October reading entry with validation, CSV export and live re-ranking
 - PDFs: bilingual brief, ghat reports (English and Hindi), method and limits (English and Hindi); WhatsApp message with copy and share
 - Government-style top bar (skip link, text size, language), keyboard navigation, reduced-motion support
+- AI assistant on the deployed site once `ANTHROPIC_API_KEY` is set in Vercel
+- Report dashboard: any report, language and ghat selection with a live A4 preview
 
 **Doesn't, or only partly**
+- **The AI assistant needs the API key in Vercel** and an internet connection; AI answers can be wrong, so the panel tells officers to check numbers with the Verify links.
 - **BMC logo is not included.** No openly licensed copy was found, and downloading it from the BMC website would break the event's rule on government portals. Drop the official file at `src/assets/brand/bmc-logo.svg` (or `.png`) and it appears in the header and on every PDF.
 - **20 October readings stay in one browser.** There is no server, by design, so readings are not shared between officers; use the CSV export.
 - **Re-ranking with 20 October readings updates the scores and order only.** Blind-spot flags and the PDF brief still describe the 2023–2025 reports.
@@ -145,12 +185,13 @@ All data comes from the official participant pack ([Laaaaksh/bhopal-impact-lab-2
 
 ## Built with
 
-TypeScript · React · Vite · Tailwind CSS · Motion (animation) · Lenis (smooth scrolling) · d3-scale (chart maths, all charts are hand-built SVG) · Zod (row checks) · PapaParse · pdf.js (receipt check) · Playwright (PDFs) · Vitest. Fonts: Yatra One (the name), Inter, Noto Sans Devanagari, all bundled for offline use. Built with Claude Code.
+TypeScript · React · Vite · Tailwind CSS · Motion (animation) · Anthropic SDK (assistant) · d3-scale (chart maths, all charts are hand-built SVG) · Zod (row checks) · PapaParse · pdf.js (receipt check) · Playwright (PDFs) · Vitest. Fonts: Yatra One (the name), Inter, Noto Sans Devanagari, all bundled for offline use. Built with Claude Code.
 
 ```
 data/                 official CSVs, unchanged
 public/reports/       the three MPPCB report PDFs (Verify links open these)
 public/pdfs/          generated PDFs (npm run pdf)
+api/chat.ts           AI assistant (Vercel function; key from ANTHROPIC_API_KEY)
 scripts/              build-data (checks + scoring), verify-receipts, build-pdfs, screenshot
 src/core/             data rules, scoring, robustness, statewide, allocator, field entries (no UI; tested)
 src/components/       design system, charts, views, print templates

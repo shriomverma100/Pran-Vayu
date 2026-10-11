@@ -22,7 +22,7 @@ export function StatusChip({ status, compact, withHint = true }: { status: Displ
   const s = STATUS_STYLE[status]
   const chip = (
     <span
-      className={`inline-flex items-center gap-1.5 border-2 font-bold uppercase tracking-wide ${s.chip} ${
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap border-2 font-bold uppercase tracking-wide ${s.chip} ${
         compact ? 'px-1.5 py-0.5 text-[0.66rem]' : 'px-2 py-1 text-[0.72rem]'
       } ${status === 'not-tested' ? '[&>span]:bg-grey-100 [&>span]:px-1' : ''}`}
     >

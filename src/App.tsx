@@ -6,19 +6,27 @@ import { Footer, Header, UtilityBar } from './components/shell/Shell'
 import { Card, SectionTitle } from './components/ui/Card'
 import { EASE_OUT } from './components/ui/motion'
 import { Tabs } from './components/ui/Tabs'
+import { Drawer } from './components/ui/Drawer'
+import { GhatDetail } from './components/views/GhatDetail'
+import { Ghats } from './components/views/Ghats'
+import { Overview } from './components/views/Overview'
+import { GHAT_BY_ID, SCORE_BY_ID } from './data'
+import { ghatName } from './lib/labels'
 import { useLang } from './i18n'
 import { useHashRoute, type TabId } from './lib/useHashRoute'
 import { useSmoothScroll } from './lib/useSmoothScroll'
 
 export default function App() {
   useSmoothScroll()
-  const { t } = useLang()
+  const { lang, t } = useLang()
   const [route, go] = useHashRoute()
   const [intro, setIntro] = useState(() => route.tab !== 'design' && shouldPlayIntro())
   const brandRef = useRef<HTMLSpanElement>(null)
 
   if (route.tab === 'design') return <DesignSystem />
   const tab = route.tab as TabId
+  const openGhat = (id: string) => go(tab, id)
+  const detail = route.detail && GHAT_BY_ID.has(route.detail) ? route.detail : null
 
   return (
     <>
@@ -52,8 +60,8 @@ export default function App() {
             animate={{ opacity: 1, y: 0, transition: EASE_OUT }}
             exit={{ opacity: 0, y: -8, transition: { duration: 0.16 } }}
           >
-            {tab === 'overview' && <Placeholder title={t('tab.overview')} phase={6} />}
-            {tab === 'ghats' && <Placeholder title={t('tab.ghats')} phase={6} />}
+            {tab === 'overview' && <Overview onOpen={openGhat} />}
+            {tab === 'ghats' && <Ghats onOpen={openGhat} />}
             {tab === 'plan' && <Placeholder title={t('tab.plan')} phase={7} />}
             {tab === 'reports' && <Placeholder title={t('tab.reports')} phase={8} />}
           </motion.div>
@@ -61,6 +69,15 @@ export default function App() {
       </main>
 
       <Footer />
+
+      <Drawer
+        open={!!detail}
+        onClose={() => go(tab)}
+        eyebrow={detail ? t('dt.eyebrow', { rank: SCORE_BY_ID.get(detail)!.rank }) : ''}
+        title={detail ? ghatName(GHAT_BY_ID.get(detail)!, lang) : ''}
+      >
+        {detail && <GhatDetail ghatId={detail} />}
+      </Drawer>
 
       <AnimatePresence>{intro && <IntroSplash targetRef={brandRef} onDone={() => setIntro(false)} />}</AnimatePresence>
     </>

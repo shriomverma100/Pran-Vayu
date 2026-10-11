@@ -50,26 +50,30 @@ export interface GhatInfo {
   name: string
   nameHi: string
   waterBody: string
+  waterBodyHi: string
   confidence: 'high' | 'medium'
   note?: string
+  noteHi?: string
 }
 
 /** The 7 ghats in the Bhopal file, with the caveats from the data dictionary. */
 export const GHATS: GhatInfo[] = [
-  { id: 'BAI', name: 'Bairagarh (Sant Hirdaram) kund', nameHi: 'बैरागढ़ (संत हिरदाराम) कुंड', waterBody: 'Upper Lake', confidence: 'high', note: 'No Durga 2025 table in the report' },
-  { id: 'KHA', name: 'Khatlapura ghat', nameHi: 'खटलापुरा घाट', waterBody: 'Lower Lake', confidence: 'high' },
-  { id: 'PRE', name: 'Prempura ghat', nameHi: 'प्रेमपुरा घाट', waterBody: 'Upper Lake', confidence: 'high' },
+  { id: 'BAI', name: 'Bairagarh (Sant Hirdaram) kund', nameHi: 'बैरागढ़ (संत हिरदाराम) कुंड', waterBody: 'Upper Lake', waterBodyHi: 'बड़ा तालाब', confidence: 'high', note: 'No Durga 2025 table in the report', noteHi: 'रिपोर्ट में दुर्गा 2025 की तालिका नहीं है' },
+  { id: 'KHA', name: 'Khatlapura ghat', nameHi: 'खटलापुरा घाट', waterBody: 'Lower Lake', waterBodyHi: 'छोटा तालाब', confidence: 'high' },
+  { id: 'PRE', name: 'Prempura ghat', nameHi: 'प्रेमपुरा घाट', waterBody: 'Upper Lake', waterBodyHi: 'बड़ा तालाब', confidence: 'high' },
   {
     id: 'RKP',
     name: 'Rani Kamlapati ghat / Kamla Park kund',
     nameHi: 'रानी कमलापति घाट / कमला पार्क कुंड',
     waterBody: 'Lower Lake',
+    waterBodyHi: 'छोटा तालाब',
     confidence: 'medium',
     note: 'Ganesh tables say "Kamla Park kund", Durga tables say "Lower Lake ghat". May be two places',
+    noteHi: 'गणेश तालिकाओं में "कमला पार्क कुंड" और दुर्गा तालिकाओं में "लोअर लेक घाट" लिखा है। ये दो अलग स्थान हो सकते हैं',
   },
-  { id: 'HAT', name: 'Hathaikheda dam / kund', nameHi: 'हथाईखेड़ा डैम / कुंड', waterBody: 'Hathaikheda dam', confidence: 'high' },
-  { id: 'MAL', name: 'Malikhedi kund', nameHi: 'मालीखेड़ी कुंड', waterBody: 'Kund', confidence: 'high', note: 'No Durga 2025 table in the report' },
-  { id: 'SHA', name: 'Shahpura lake ghat', nameHi: 'शाहपुरा झील घाट', waterBody: 'Shahpura Lake', confidence: 'high' },
+  { id: 'HAT', name: 'Hathaikheda dam / kund', nameHi: 'हथाईखेड़ा डैम / कुंड', waterBody: 'Hathaikheda dam', waterBodyHi: 'हथाईखेड़ा डैम', confidence: 'high' },
+  { id: 'MAL', name: 'Malikhedi kund', nameHi: 'मालीखेड़ी कुंड', waterBody: 'Kund', waterBodyHi: 'कुंड', confidence: 'high', note: 'No Durga 2025 table in the report', noteHi: 'रिपोर्ट में दुर्गा 2025 की तालिका नहीं है' },
+  { id: 'SHA', name: 'Shahpura lake ghat', nameHi: 'शाहपुरा झील घाट', waterBody: 'Shahpura Lake', waterBodyHi: 'शाहपुरा झील', confidence: 'high' },
 ]
 
 export const GHAT_BY_NAME = new Map(GHATS.map((g) => [g.name, g]))

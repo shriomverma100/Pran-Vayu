@@ -15,15 +15,18 @@ interface DrawerProps {
 }
 
 /** Side panel for ghat detail. Esc closes; focus moves in and returns on close. */
-export function Drawer({ open, onClose, title, eyebrow, children, width = 760 }: DrawerProps) {
+export function Drawer({ open, onClose, title, eyebrow, children, width = 920 }: DrawerProps) {
   const { t } = useLang()
   const panelRef = useRef<HTMLDivElement>(null)
   const returnFocus = useRef<HTMLElement | null>(null)
+  // Keep the latest onClose without re-running the open/close effect on every render.
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
     if (!open) return
     returnFocus.current = document.activeElement as HTMLElement
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onCloseRef.current()
     window.addEventListener('keydown', onKey)
     document.documentElement.style.overflow = 'hidden'
     const id = window.setTimeout(() => panelRef.current?.focus(), 60)
@@ -33,7 +36,7 @@ export function Drawer({ open, onClose, title, eyebrow, children, width = 760 }:
       window.clearTimeout(id)
       returnFocus.current?.focus?.()
     }
-  }, [open, onClose])
+  }, [open])
 
   return createPortal(
     <AnimatePresence>

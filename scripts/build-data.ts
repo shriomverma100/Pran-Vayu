@@ -15,6 +15,8 @@ import { z } from 'zod'
 import { GHATS, REPORTS, SLOTS_PER_GHAT } from '../src/core/constants'
 import { runGuards } from '../src/core/guards'
 import { DEFAULT_CONFIG, scoreGhats } from '../src/core/scoring'
+import { CLASS_OPTIONS, FESTIVAL_OPTIONS, PARAMETER_OPTIONS, rankStability, YEAR_OPTIONS } from '../src/core/robustness'
+import { compareGhat, statewideOxygen } from '../src/core/statewide'
 import {
   BhopalRowSchema,
   CpcbRowSchema,
@@ -110,6 +112,21 @@ const scores = scoreGhats(readings, limits, DEFAULT_CONFIG)
 console.log('\nRanking (CPCB Class B, default weights)')
 for (const s of scores) console.log(`  #${s.rank} ${GHATS.find((g) => g.id === s.ghatId)!.name.padEnd(40)} ${String(s.score).padStart(5)}  ${s.tier.padEnd(9)} ${s.action}`)
 
+// --- Robustness: 24 scoring scenarios -----------------------------------
+const robustness = rankStability(readings, limits)
+console.log(`
+Rank stability across ${robustness.scenarios.length} scoring scenarios`)
+for (const g of robustness.ghats)
+  console.log(`  ${GHATS.find((x) => x.id === g.ghatId)!.name.padEnd(40)} #${g.baseRank}  range ${g.bestRank}-${g.worstRank}  ${g.stability}`)
+
+// --- Statewide comparison -------------------------------------------------
+const statewide = statewideOxygen(statewideRows)
+const comparisons = GHATS.map((g) => compareGhat(g.id, readings, statewide.values))
+const ex = statewide.summary.excluded
+console.log(`
+Statewide oxygen: ${statewide.summary.readings} readings at other MP sites, ${(statewide.summary.below5Share * 100).toFixed(0)}% below 5, ${statewide.summary.zero} at zero`)
+console.log(`  excluded: ${ex.needsCheck} needs_check, ${ex.conflictingDuplicates} conflicting duplicates, ${ex.implausible} impossible (> 20 mg/l), ${ex.bhopalGhats} Bhopal ghats, ${ex.notMeasured} not measured`)
+
 // --- Fingerprint and output ----------------------------------------------
 const files = [fingerprint(FILES.bhopal), fingerprint(FILES.cpcb), fingerprint(FILES.statewide)]
 const combined = createHash('sha256').update(files.map((f) => f.sha256).join('')).digest('hex')
@@ -133,6 +150,11 @@ const output = {
   coverage,
   config: DEFAULT_CONFIG,
   scores,
+  robustness: {
+    options: { classes: CLASS_OPTIONS, festivals: FESTIVAL_OPTIONS, years: YEAR_OPTIONS, parameters: PARAMETER_OPTIONS },
+    ...robustness,
+  },
+  statewide: { summary: statewide.summary, ghats: comparisons },
 }
 
 mkdirSync(OUT_DIR, { recursive: true })

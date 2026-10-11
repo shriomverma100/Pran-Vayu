@@ -223,6 +223,18 @@ const PATHS = {
     </>
   ),
   menu: <path d="M4 6.5h16M4 12h16M4 17.5h16" />,
+  spark: (
+    <>
+      <path d="M12 3v5M12 16v5M3 12h5M16 12h5" />
+      <path d="m6.5 6.5 2.5 2.5M15 15l2.5 2.5M17.5 6.5 15 9M9 15l-2.5 2.5" />
+    </>
+  ),
+  send: (
+    <>
+      <path d="M3.5 11.5 20.5 4l-7.5 17-2.5-7Z" />
+      <path d="m10.5 14 10-10" />
+    </>
+  ),
 } as const
 
 export type IconName = keyof typeof PATHS

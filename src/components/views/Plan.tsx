@@ -15,7 +15,7 @@ import { AllocationOrderDoc } from '../print/Docs'
 import { PrintPage, usePrintDoc } from '../print/PrintDoc'
 import { ACTION_ICON, StatusChip, TierBadge } from '../ui/Badges'
 import { Button, IconButton } from '../ui/Button'
-import { Card, CardHeader, SectionTitle } from '../ui/Card'
+import { Card, CardHeader } from '../ui/Card'
 import { rise, SPRING_SNAPPY, stagger } from '../ui/motion'
 import { Segmented } from '../ui/Tabs'
 
@@ -113,7 +113,7 @@ function AllocationLists({ plan }: { plan: Allocation }) {
 }
 
 /** One A4 field sheet per ghat with a sampling team. */
-function FieldSheetPages({ ghatIds, plan }: { ghatIds: string[]; plan: Allocation }) {
+export function FieldSheetPages({ ghatIds, plan }: { ghatIds: string[]; plan: Allocation }) {
   const { lang, t } = useLang()
   return (
     <>
@@ -183,7 +183,7 @@ function FieldSheetPages({ ghatIds, plan }: { ghatIds: string[]; plan: Allocatio
   )
 }
 
-function FieldEntryPanel() {
+export function FieldEntryPanel() {
   const { lang, t } = useLang()
   const [entries, setEntries] = useStoredState<FieldEntry[]>('pran-vayu:field-2026', [])
   const [ghatId, setGhatId] = useState(DATA.scores[0].ghatId)
@@ -365,82 +365,126 @@ function FieldEntryPanel() {
   )
 }
 
-export function Plan() {
-  const { lang, t } = useLang()
+/** Shared aerator and team counts: chosen in step 2, used by step 3 and the reports. */
+export function usePlan() {
   const [aerators, setAerators] = useStoredState('pran-vayu:aerators', 3)
   const [teams, setTeams] = useStoredState('pran-vayu:teams', 2)
   const plan = useMemo(() => allocate(DATA.scores, aerators, teams), [aerators, teams])
+  return { aerators, setAerators, teams, setTeams, plan }
+}
+
+/** Step header: the step number, what this screen does, and the one next step. */
+export function StepHeader({ step, title, lede, next, onNext }: { step: number; title: string; lede: string; next?: string; onNext?: () => void }) {
+  const { t } = useLang()
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex items-start gap-4">
+        <span className="nums grid h-14 w-14 shrink-0 place-items-center border-[2.5px] border-ink bg-orange text-2xl font-extrabold shadow-brut-sm">{step}</span>
+        <div className="max-w-3xl">
+          <p className="eyebrow text-orange-deep">{t('plan.eyebrow')}</p>
+          <h2 className="mt-0.5 text-[2rem] leading-tight font-extrabold tracking-tight">{title}</h2>
+          <p className="mt-1.5 text-grey-700">{lede}</p>
+        </div>
+      </div>
+      {next && onNext && (
+        <Button variant="ink" iconRight="arrowRight" onClick={onNext}>
+          {t('step.next', { step: next })}
+        </Button>
+      )}
+    </div>
+  )
+}
+
+/** ② Send teams: aerators and sampling teams to ghats, with the reason. */
+export function SendTeams({ onNext }: { onNext: () => void }) {
+  const { t } = useLang()
+  const { aerators, setAerators, teams, setTeams, plan } = usePlan()
+  const { print, node } = usePrintDoc()
+  return (
+    <motion.div initial="hidden" animate="show" variants={stagger()} className="space-y-8">
+      <motion.div variants={rise}>
+        <StepHeader step={2} title={t('step.2')} lede={t('step.2.lede')} next={t('step.3')} onNext={onNext} />
+      </motion.div>
+      <motion.div variants={rise} className="grid gap-4 md:grid-cols-2">
+        <Stepper label={t('alloc.aerators')} value={aerators} onChange={setAerators} icon="aerator" />
+        <Stepper label={t('alloc.teams')} value={teams} onChange={setTeams} icon="team" />
+      </motion.div>
+      <motion.div variants={rise}>
+        <AllocationLists plan={plan} />
+      </motion.div>
+      <motion.div variants={rise} className="flex flex-wrap gap-3">
+        <Button variant="primary" icon="print" disabled={!plan.aerators.length && !plan.teams.length} onClick={() => print(<AllocationOrderDoc plan={plan} aerators={aerators} teams={teams} />)}>
+          {t('order.print')}
+        </Button>
+      </motion.div>
+      {node}
+    </motion.div>
+  )
+}
+
+/** ③ Test on 20 October: field sampling sheets for the ghats with a team. */
+export function TestDay({ onNext }: { onNext: () => void }) {
+  const { lang, t } = useLang()
+  const { plan } = usePlan()
   const sheetGhats = [...new Set(plan.teams.map((x) => x.ghatId))]
   const { print, node } = usePrintDoc()
-
   return (
-    <motion.div initial="hidden" animate="show" variants={stagger(0.08)} className="space-y-14">
+    <motion.div initial="hidden" animate="show" variants={stagger()} className="space-y-8">
       <motion.div variants={rise}>
-        <SectionTitle eyebrow={t('plan.eyebrow')} title={<span className="text-[2.1rem]">{t('plan.title')}</span>} lede={t('plan.lede')} />
+        <StepHeader step={3} title={t('step.3')} lede={t('step.3.lede')} next={t('step.4')} onNext={onNext} />
       </motion.div>
-
-      <motion.section variants={rise} className="space-y-5">
-        <SectionTitle
-          title={t('alloc.title')}
-          right={
-            <Button variant="ink" icon="print" disabled={!plan.aerators.length && !plan.teams.length} onClick={() => print(<AllocationOrderDoc plan={plan} aerators={aerators} teams={teams} />)}>
-              {t('order.print')}
-            </Button>
-          }
-        />
-        <div className="grid gap-4 md:grid-cols-2">
-          <Stepper label={t('alloc.aerators')} value={aerators} onChange={setAerators} icon="aerator" />
-          <Stepper label={t('alloc.teams')} value={teams} onChange={setTeams} icon="team" />
-        </div>
-        <AllocationLists plan={plan} />
-      </motion.section>
-
-      <motion.section variants={rise} className="space-y-5">
-        <SectionTitle
-          title={t('sheet.title')}
-          lede={t('sheet.lede')}
-          right={
-            <Button variant="ink" icon="print" disabled={!sheetGhats.length} onClick={() => print(<FieldSheetPages ghatIds={sheetGhats} plan={plan} />)}>
-              {t('sheet.print')}
-            </Button>
-          }
-        />
-        {sheetGhats.length === 0 ? (
-          <Card tone="paper" className="p-5 text-grey-700">
-            {t('sheet.none')}
-          </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {sheetGhats.map((id) => {
-              const g = GHAT_BY_ID.get(id)!
-              const s = SCORE_BY_ID.get(id)!
-              const team = plan.teams.find((x) => x.ghatId === id)!
-              return (
-                <Card key={id} className="p-4">
-                  <p className="flex items-center gap-2 font-extrabold">
-                    <Icon name={ACTION_ICON[s.action]} size={18} />
-                    {ghatName(g, lang)}
-                  </p>
-                  <p className="mt-1 text-sm text-grey-800">{t(`test.${team.reason}` as StringKey, team.values)}</p>
-                  <ul className="mt-3 space-y-1 text-xs">
-                    {PHASES.map((p) => (
-                      <li key={p} className="flex items-center gap-2">
-                        <Icon name="calendar" size={14} />
-                        {t(`sheet.stage.${p}` as StringKey)}
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              )
-            })}
-          </div>
-        )}
-      </motion.section>
-
-      <motion.section variants={rise}>
-        <FieldEntryPanel />
-      </motion.section>
+      <motion.div variants={rise}>
+        <Button variant="primary" size="lg" icon="print" disabled={!sheetGhats.length} onClick={() => print(<FieldSheetPages ghatIds={sheetGhats} plan={plan} />)}>
+          {t('sheet.print')}
+        </Button>
+      </motion.div>
+      {sheetGhats.length === 0 ? (
+        <Card tone="paper" className="p-5 text-grey-700">
+          {t('sheet.none')}
+        </Card>
+      ) : (
+        <motion.div variants={rise} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {sheetGhats.map((id) => {
+            const g = GHAT_BY_ID.get(id)!
+            const s = SCORE_BY_ID.get(id)!
+            const team = plan.teams.find((x) => x.ghatId === id)!
+            return (
+              <Card key={id} className="p-4">
+                <p className="flex items-center gap-2 font-extrabold">
+                  <Icon name={ACTION_ICON[s.action]} size={18} />
+                  {ghatName(g, lang)}
+                </p>
+                <p className="mt-1 text-sm text-grey-800">{t(`test.${team.reason}` as StringKey, team.values)}</p>
+                <ul className="mt-3 space-y-1 text-xs">
+                  {PHASES.map((p) => (
+                    <li key={p} className="flex items-center gap-2">
+                      <Icon name="calendar" size={14} />
+                      {t(`sheet.stage.${p}` as StringKey)}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )
+          })}
+        </motion.div>
+      )}
+      <p className="text-sm text-grey-700">{t('sheet.lede')}</p>
       {node}
+    </motion.div>
+  )
+}
+
+/** ④ Update: enter the 20 October readings; the ranking updates. */
+export function UpdateDay({ onNext }: { onNext: () => void }) {
+  const { t } = useLang()
+  return (
+    <motion.div initial="hidden" animate="show" variants={stagger()} className="space-y-8">
+      <motion.div variants={rise}>
+        <StepHeader step={4} title={t('step.4')} lede={t('step.4.lede')} next={t('step.1')} onNext={onNext} />
+      </motion.div>
+      <motion.div variants={rise}>
+        <FieldEntryPanel />
+      </motion.div>
     </motion.div>
   )
 }

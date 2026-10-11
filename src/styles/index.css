@@ -166,3 +166,22 @@
   .print-page:last-child { break-after: auto; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* Press feedback: transform-only, GPU-composited, answers on the next frame. */
+.press, .press-sm, .press-xs {
+  transition: transform 90ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 90ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+}
+.press { box-shadow: 4px 4px 0 0 #111111; }
+.press:hover { transform: translate3d(-2px, -2px, 0); box-shadow: 6px 6px 0 0 #111111; }
+.press:active { transform: translate3d(4px, 4px, 0); box-shadow: 0 0 0 0 #111111; transition-duration: 35ms; }
+.press-sm { box-shadow: 3px 3px 0 0 #111111; }
+.press-sm:hover { transform: translate3d(-1px, -1px, 0); box-shadow: 4px 4px 0 0 #111111; }
+.press-sm:active { transform: translate3d(3px, 3px, 0); box-shadow: 0 0 0 0 #111111; transition-duration: 35ms; }
+.press-xs { box-shadow: 2px 2px 0 0 #111111; }
+.press-xs:hover { transform: translate3d(-1px, -1px, 0); box-shadow: 3px 3px 0 0 #111111; }
+.press-xs:active { transform: translate3d(2px, 2px, 0); box-shadow: 0 0 0 0 #111111; transition-duration: 35ms; }
+
+/* Tab change: content is there immediately, with a short fade. */
+@keyframes pv-fade { from { opacity: 0; transform: translate3d(0, 4px, 0); } to { opacity: 1; transform: none; } }
+.tab-enter { animation: pv-fade 140ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }

@@ -143,11 +143,11 @@ export const Header = forwardRef<HTMLSpanElement, { brandVisible: boolean }>(fun
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <Tooltip content={t('footer.checks', { n: DATA.guards.length })}>
-            <span className="hidden items-center gap-2 border-2 border-ink bg-paper px-3 py-2 text-xs font-bold lg:inline-flex">
-              <Icon name="shield" size={16} />
-              {t('shell.data')}
-            </span>
+          <Tooltip content={t('shell.data')}>
+            <a href="pdfs/pran-vayu-brief-en-hi.pdf" download className="press inline-flex h-12 items-center gap-2 border-[2.5px] border-ink bg-orange px-4 text-sm font-extrabold text-ink no-underline">
+              <Icon name="download" size={18} />
+              {t('header.brief')} · हिंदी + EN
+            </a>
           </Tooltip>
           <Countdown />
         </div>

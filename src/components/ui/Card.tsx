@@ -1,7 +1,6 @@
 import { motion, type HTMLMotionProps } from 'motion/react'
 import type { ReactNode } from 'react'
 import { Icon, type IconName } from '../icons'
-import { pressable, SPRING_SNAPPY } from './motion'
 
 type Tone = 'white' | 'paper' | 'ink' | 'orange' | 'tint'
 
@@ -28,13 +27,7 @@ export function Card({ tone = 'white', interactive, shadow = 'md', className = '
   if (interactive) {
     return (
       <motion.section
-        initial="rest"
-        animate="rest"
-        whileHover="hover"
-        whileTap="press"
-        variants={pressable(4)}
-        transition={SPRING_SNAPPY}
-        className={`border-[2.5px] border-ink cursor-pointer ${TONE[tone]} ${className}`}
+        className={`press border-[2.5px] border-ink cursor-pointer ${TONE[tone]} ${className}`}
         {...rest}
       >
         {children}

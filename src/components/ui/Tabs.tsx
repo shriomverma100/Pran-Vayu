@@ -8,6 +8,10 @@ export interface TabItem<T extends string> {
   label: string
   icon?: IconName
   badge?: string | number
+  /** Step number in the officer loop */
+  step?: number
+  /** Visual gap before this tab */
+  gapBefore?: boolean
 }
 
 /**
@@ -44,7 +48,7 @@ export function Tabs<T extends string>({ items, value, onChange, idPrefix }: { i
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(item.id)}
             onKeyDown={(e) => onKey(e, i)}
-            className={`group relative flex shrink-0 items-center gap-2 px-4 py-3 text-[0.95rem] font-bold transition-colors duration-200 ${active ? 'text-ink' : 'text-grey-600 hover:text-ink'}`}
+            className={`group relative flex shrink-0 items-center gap-2 px-4 py-3 text-[0.95rem] font-bold transition-colors duration-100 ${item.gapBefore ? 'ml-4 before:absolute before:-left-2.5 before:top-1/2 before:h-6 before:w-[2px] before:-translate-y-1/2 before:bg-grey-300' : ''} ${active ? 'text-ink' : 'text-grey-600 hover:text-ink'}`}
           >
             {active && (
               <motion.span
@@ -56,7 +60,11 @@ export function Tabs<T extends string>({ items, value, onChange, idPrefix }: { i
             )}
             {active && <motion.span layoutId={`${layoutId}-bar`} transition={SPRING_SNAPPY} className="absolute inset-x-0 -bottom-[2.5px] z-10 h-[5px] bg-orange" />}
             <span className="relative z-10 flex items-center gap-2">
-              {item.icon && <Icon name={item.icon} size={18} className="transition-transform duration-300 group-hover:-translate-y-0.5" />}
+              {item.step !== undefined ? (
+                <span className={`nums grid h-6 w-6 place-items-center border-2 border-ink text-xs font-extrabold ${active ? 'bg-orange' : 'bg-white'}`}>{item.step}</span>
+              ) : (
+                item.icon && <Icon name={item.icon} size={18} className="transition-transform duration-150 group-hover:-translate-y-0.5" />
+              )}
               {item.label}
               {item.badge !== undefined && (
                 <span className={`ml-0.5 border-2 border-ink px-1.5 text-[0.7rem] leading-4 ${active ? 'bg-orange' : 'bg-grey-100'}`}>{item.badge}</span>

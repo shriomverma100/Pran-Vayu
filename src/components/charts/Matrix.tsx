@@ -1,4 +1,3 @@
-import { motion, useReducedMotion } from 'motion/react'
 import { useState } from 'react'
 import { FESTIVALS, PHASES, YEARS, type Parameter } from '../../core/constants'
 import { readingId } from '../../core/readings'
@@ -22,7 +21,6 @@ const LEGEND: DisplayStatus[] = ['severe', 'breach', 'within', 'not-tested', 'bd
  */
 export function Matrix({ onOpen }: { onOpen: (ghatId: string) => void }) {
   const { lang, t } = useLang()
-  const reduce = useReducedMotion()
   const [param, setParam] = useState<Parameter>('Dissolved oxygen')
 
   const columns = YEARS.flatMap((year) => FESTIVALS.flatMap((festival) => PHASES.map((phase) => ({ year, festival, phase }))))
@@ -68,7 +66,7 @@ export function Matrix({ onOpen }: { onOpen: (ghatId: string) => void }) {
           ))}
 
           {/* rows */}
-          {DATA.scores.map((s, row) => {
+          {DATA.scores.map((s) => {
             const g = GHAT_BY_ID.get(s.ghatId)!
             const slots = DATA.coverage[s.ghatId]
             return [
@@ -118,20 +116,16 @@ export function Matrix({ onOpen }: { onOpen: (ghatId: string) => void }) {
                       </span>
                     }
                   >
-                    <motion.button
+                    <button
                       type="button"
                       onClick={() => onOpen(s.ghatId)}
                       aria-label={`${ghatName(g, lang)}, ${testLabel(c, t)}, ${r ? valueLabel(r) : '—'}, ${t(style.label)}`}
-                      initial={reduce ? false : { opacity: 0, scale: 0.6 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.15 + i * 0.018 + row * 0.03, type: 'spring', stiffness: 420, damping: 28 }}
-                      whileHover={{ scale: 1.12, zIndex: 5 }}
-                      className={`nums relative m-[3px] grid h-9 w-[calc(100%-6px)] place-items-center border-[1.5px] border-ink text-[0.72rem] font-bold ${style.cell} ${
+                      className={`nums relative m-[3px] transition-transform duration-100 hover:z-10 hover:scale-110 grid h-9 w-[calc(100%-6px)] place-items-center border-[1.5px] border-ink text-[0.72rem] font-bold ${style.cell} ${
                         status === 'severe' ? 'text-white' : 'text-ink'
                       }`}
                     >
                       {text && <span className={status === 'not-tested' ? '' : ''}>{text}</span>}
-                    </motion.button>
+                    </button>
                   </Tooltip>
                 )
               }),

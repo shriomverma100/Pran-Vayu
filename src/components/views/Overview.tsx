@@ -16,7 +16,7 @@ import { rise, stagger } from '../ui/motion'
 import { StatTile } from '../ui/StatTile'
 import { HonestyBox } from './Trust'
 
-export function Overview({ onOpen }: { onOpen: (ghatId: string) => void }) {
+export function Overview({ onOpen, evidence }: { onOpen: (ghatId: string) => void; evidence?: boolean }) {
   const { lang, t } = useLang()
   const days = Math.max(0, daysUntil(VISARJAN_DATE))
   const doM = DATA.readings.filter((r) => r.parameter === 'Dissolved oxygen' && r.kind === 'measured')
@@ -28,13 +28,13 @@ export function Overview({ onOpen }: { onOpen: (ghatId: string) => void }) {
 
   return (
     <motion.div initial="hidden" animate="show" variants={stagger(0.08)} className="space-y-14">
-      <motion.div variants={rise}>
+      {!evidence && <motion.div variants={rise}>
         <SectionTitle eyebrow={t('ov.eyebrow')} title={<span className="text-[2.1rem]">{t('ov.title')}</span>} lede={t('ov.lede')} />
         <p className="mt-4 inline-flex items-center gap-2 border-2 border-ink bg-orange-tint px-3 py-2 font-bold">
           <Icon name="alert" size={18} />
           {t('ov.summary', tiers)}
         </p>
-      </motion.div>
+      </motion.div>}
 
       {/* Headline numbers */}
       <motion.div variants={rise} className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -45,7 +45,7 @@ export function Overview({ onOpen }: { onOpen: (ghatId: string) => void }) {
       </motion.div>
 
       {/* Act first */}
-      <motion.section variants={rise} className="space-y-5">
+      {!evidence && <motion.section variants={rise} className="space-y-5">
         <SectionTitle title={t('ov.act.title')} lede={t('ov.act.lede')} />
         <div className="grid gap-6 lg:grid-cols-3">
           {top.map((s) => {
@@ -103,8 +103,9 @@ export function Overview({ onOpen }: { onOpen: (ghatId: string) => void }) {
         </div>
       </motion.section>
 
+      }
       {/* Blind spots */}
-      <motion.section variants={rise}>
+      {!evidence && <motion.section variants={rise}>
         <Card tone="white" className="overflow-hidden">
           <CardHeader icon="flask" label={t('ov.blind.title')} tone="ink" />
           <div className="grid gap-0 md:grid-cols-[1fr_1.6fr]">
@@ -146,6 +147,7 @@ export function Overview({ onOpen }: { onOpen: (ghatId: string) => void }) {
         </Card>
       </motion.section>
 
+      }
       {/* Matrix */}
       <motion.section variants={rise} className="space-y-5">
         <SectionTitle title={t('ov.matrix.title')} lede={t('ov.matrix.lede')} />
@@ -162,9 +164,11 @@ export function Overview({ onOpen }: { onOpen: (ghatId: string) => void }) {
         </Card>
       </motion.section>
 
-      <motion.section variants={rise}>
-        <HonestyBox compact />
-      </motion.section>
+      {!evidence && (
+        <motion.section variants={rise}>
+          <HonestyBox compact />
+        </motion.section>
+      )}
     </motion.div>
   )
 }

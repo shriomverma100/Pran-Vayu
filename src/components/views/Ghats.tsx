@@ -8,7 +8,7 @@ import { Icon } from '../icons'
 import { ActionBadge, StabilityBadge, TierBadge } from '../ui/Badges'
 import { Card, SectionTitle } from '../ui/Card'
 import { CoverageBar } from '../ui/CoverageBar'
-import { rise, SPRING_SNAPPY, stagger } from '../ui/motion'
+import { rise, stagger } from '../ui/motion'
 
 export function Ghats({ onOpen }: { onOpen: (ghatId: string) => void }) {
   const { lang, t } = useLang()
@@ -26,19 +26,9 @@ export function Ghats({ onOpen }: { onOpen: (ghatId: string) => void }) {
           const stab = STABILITY_BY_ID.get(s.ghatId)!
           return (
             <motion.div key={s.ghatId} variants={rise}>
-              <motion.div
+              <div
                 onClick={() => onOpen(s.ghatId)}
-                initial="rest"
-                whileHover="hover"
-                whileTap="press"
-                animate="rest"
-                variants={{
-                  rest: { x: 0, y: 0, boxShadow: '4px 4px 0 0 #111111' },
-                  hover: { x: -2, y: -2, boxShadow: '7px 7px 0 0 #111111' },
-                  press: { x: 3, y: 3, boxShadow: '1px 1px 0 0 #111111' },
-                }}
-                transition={SPRING_SNAPPY}
-                className="grid w-full cursor-pointer items-center gap-x-6 gap-y-4 border-[2.5px] border-ink bg-white p-5 text-left md:grid-cols-[64px_minmax(220px,1.3fr)_minmax(200px,1fr)_minmax(320px,1.2fr)]"
+                className="press grid w-full cursor-pointer items-center gap-x-6 gap-y-4 border-[2.5px] border-ink bg-white p-5 text-left md:grid-cols-[64px_minmax(220px,1.3fr)_minmax(200px,1fr)_minmax(320px,1.2fr)]"
               >
                 {/* rank */}
                 <div className={`grid h-16 w-16 place-items-center border-[2.5px] border-ink text-3xl font-extrabold ${s.tier === 'act-now' ? 'bg-ink text-white' : s.tier === 'high' ? 'bg-orange' : 'bg-orange-tint'}`}>
@@ -97,7 +87,7 @@ export function Ghats({ onOpen }: { onOpen: (ghatId: string) => void }) {
                     <CoverageBar slots={DATA.coverage[s.ghatId]} size="sm" />
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </motion.div>
           )
         })}

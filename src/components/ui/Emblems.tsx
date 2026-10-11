@@ -12,7 +12,7 @@ interface EmblemsProps {
   divided?: boolean
 }
 
-/** Ashoka emblem · MP Government emblem · BMC logo (when provided). Monochrome to match the palette. */
+/** Ashoka emblem · MP Government emblem · BMC logo (when provided), in their official colours. */
 export function Emblems({ height = 44, divided = true }: EmblemsProps) {
   const items = [
     { src: emblemIndia, alt: 'State Emblem of India' },
@@ -24,7 +24,7 @@ export function Emblems({ height = 44, divided = true }: EmblemsProps) {
       {items.map((e, i) => (
         <div key={e.src} className="flex items-center gap-3">
           {divided && i > 0 && <span className="h-8 w-[2px] bg-ink/80" aria-hidden />}
-          <img src={e.src} alt={e.alt} style={{ height }} className="w-auto object-contain grayscale contrast-125" draggable={false} />
+          <img src={e.src} alt={e.alt} style={{ height }} className="w-auto object-contain" draggable={false} />
         </div>
       ))}
     </div>

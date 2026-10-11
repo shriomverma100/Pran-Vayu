@@ -43,11 +43,11 @@ export function Drawer({ open, onClose, title, eyebrow, children, width = 920 }:
       {open && (
         <div className="fixed inset-0 z-50" data-lenis-prevent>
           <motion.div
-            className="absolute inset-0 bg-ink/45 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-ink/50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.14 }}
             onClick={onClose}
           />
           <motion.div
@@ -57,7 +57,7 @@ export function Drawer({ open, onClose, title, eyebrow, children, width = 920 }:
             tabIndex={-1}
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
-            exit={{ x: '100%', transition: { duration: 0.28, ease: [0.4, 0, 1, 1] } }}
+            exit={{ x: '100%', transition: { duration: 0.16, ease: [0.4, 0, 1, 1] } }}
             transition={SPRING_PANEL}
             style={{ width: `min(${width}px, 100vw)` }}
             className="absolute inset-y-0 right-0 flex flex-col border-l-[2.5px] border-ink bg-paper shadow-[-8px_0_0_0_#111111] outline-none"

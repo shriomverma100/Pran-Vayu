@@ -13,3 +13,5 @@ playwright-report/
 src/generated/
 *.tmp.mjs
 .shots/
+*.tmp.cjs
+*.tmp.ts

@@ -15,7 +15,8 @@
     "pdf": "tsx scripts/build-pdfs.ts",
     "verify": "npm run data --silent && tsx scripts/verify-receipts.ts",
     "shot": "tsx scripts/screenshot.ts",
-    "verify:all": "npm run verify && npm test"
+    "verify:all": "npm run verify && npm test",
+    "bench": "tsx scripts/benchmark.ts"
   },
   "dependencies": {
     "d3-scale": "^4.0.2",

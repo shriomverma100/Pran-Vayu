@@ -1,7 +1,26 @@
+<div align="center">
+
 # प्राण-वायु
 
 **Bhopal visarjan ghat risk and action planner**
-Claude Impact Lab × Cerebras Café Compute, Bhopal · 11 October 2026 · **Track 2: Visarjan Ghat Watch**
+Which ghats need aerators and testing before Durga visarjan on 20 October 2026, why, and the report page behind every number.
+
+[![Live](https://img.shields.io/badge/live-pran--vayu.vercel.app-EA6A0A?style=flat-square)](https://pran-vayu.vercel.app)
+![Track](https://img.shields.io/badge/Track%202-Visarjan%20Ghat%20Watch-111111?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-60%20passing-111111?style=flat-square)
+![Data checks](https://img.shields.io/badge/data%20checks-18%2F18-111111?style=flat-square)
+![Receipts](https://img.shields.io/badge/PDF%20receipts-1%2C467%2F1%2C467-111111?style=flat-square)
+![Languages](https://img.shields.io/badge/English%20%2B%20%E0%A4%B9%E0%A4%BF%E0%A4%82%E0%A4%A6%E0%A5%80-111111?style=flat-square)
+[![License: MIT](https://img.shields.io/badge/license-MIT-111111?style=flat-square)](LICENSE)
+
+**[Open the platform](https://pran-vayu.vercel.app)** ·
+**[Visarjan brief PDF (English + हिंदी)](public/pdfs/pran-vayu-brief-en-hi.pdf)** ·
+[Ghat profiles EN](public/pdfs/pran-vayu-ghat-reports-en.pdf) / [हिंदी](public/pdfs/pran-vayu-ghat-reports-hi.pdf) ·
+[Method and limits EN](public/pdfs/pran-vayu-method-en.pdf) / [हिंदी](public/pdfs/pran-vayu-method-hi.pdf)
+
+Claude Impact Lab × Cerebras Café Compute, Bhopal · 11 October 2026
+
+</div>
 
 | | |
 |---|---|
@@ -50,9 +69,12 @@ Durga visarjan is on **Tuesday 20 October 2026**. Three years of MPPCB water tes
 
 The orange **Ask प्राण-वायु** button opens an assistant for an officer with no time to look around. It answers in English or Hindi **only from the platform's checked data**, cites the report page for each reading, never makes health claims, and can **act in the platform**: open a ghat's evidence, plan aerators and teams with the allocator (and explain the result), download a report, switch language, or go to a step. Each action shows as a short animated line in the chat.
 
-- Server function: [api/chat.ts](api/chat.ts) (Vercel), official `@anthropic-ai/sdk`, model `claude-opus-5-5` at low effort for quick replies, with the API's server-side refusal fallback enabled.
-- The browser sends a plain-text summary of the checked data ([src/lib/assistantContext.ts](src/lib/assistantContext.ts)); the rules live on the server.
-- **To switch it on:** Vercel project → Settings → Environment Variables → add `ANTHROPIC_API_KEY` → Redeploy. The key is never in the code or the browser.
+- Server function: [api/chat.ts](api/chat.ts) (Vercel) calls **Groq** (`openai/gpt-oss-120b`, OpenAI-compatible API). Answers arrive in about one second.
+- The browser sends a compact plain-text summary of the checked data, about 3,000 tokens with every oxygen, BOD and pH reading and its page ([src/lib/assistantContext.ts](src/lib/assistantContext.ts)). The rules live on the server.
+- **One model call per question.** When the model calls a tool, the browser runs it and writes the outcome itself; the aerator and team allocation comes straight from the tested allocator, not from the model's wording.
+- **Answer check:** every number in a reply is compared with the checked data; anything that doesn't match is flagged to the officer with a link to the proof.
+- **Accuracy over availability:** only the strongest model answers. In testing, smaller fallback models misread readings, so when Groq's free-tier limit (8,000 tokens a minute) is reached the officer is asked to retry in a minute.
+- **To switch it on:** Vercel project → Settings → Environment Variables → add `GROQ_API_KEY` → Redeploy. The key is never in the code, the repo or the browser.
 - It runs on the deployed site only; on `npm run dev` the panel explains this.
 
 ## Similar systems elsewhere
@@ -84,6 +106,71 @@ Those systems test and warn. प्राण-वायु adds the decision: **w
 | **हिंदी** | **Report dashboard** |
 | ![Hindi](docs/screenshots/07-hindi.jpg) | ![Brief](docs/screenshots/08-brief-pdf.jpg) |
 
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph Sources["Official sources (unchanged)"]
+    CSV["MPPCB readings CSV<br/>1,524 rows · 7 ghats"]
+    CPCB["CPCB limits CSV"]
+    MP["Statewide CSV<br/>21,600 rows"]
+    PDF["MPPCB report PDFs<br/>2023 · 2024 · 2025"]
+  end
+  subgraph Build["npm run build"]
+    CHECK["build-data.ts<br/>row schemas · 18 data checks<br/>scoring · robustness ×24<br/>statewide cleaning · SHA-256"]
+    REC["verify-receipts.ts<br/>1,467 values found on<br/>their cited PDF pages"]
+    JSON[("data.json")]
+  end
+  subgraph App["Static React app (Vercel)"]
+    STEPS["① What to do · ② Send teams<br/>③ Test on 20 Oct · ④ Update"]
+    EV["Evidence · Reports"]
+    AI["Assistant panel"]
+  end
+  PDFOUT["Brief · profiles · method PDFs<br/>(Playwright, same templates)"]
+  API["api/chat.ts<br/>Groq gpt-oss-120b"]
+  CSV --> CHECK
+  CPCB --> CHECK
+  MP --> CHECK
+  CHECK --> JSON
+  PDF --> REC
+  JSON --> REC
+  JSON --> STEPS
+  JSON --> EV
+  JSON --> PDFOUT
+  EV -. "Verify links" .-> PDF
+  AI <--> API
+```
+
+- **All numbers are computed once, at build time,** from the official CSVs, and the build stops if any of the 18 checks fails. The screens, the PDFs and the assistant all read the same `data.json`.
+- **The core is plain TypeScript with no UI** ([src/core/](src/core/)): data rules, scoring, robustness, statewide cleaning, allocator and field entries, each covered by tests, so the department can reuse it elsewhere.
+- **No database and no login.** The site is static; 20 October readings stay in the officer's browser and export as CSV. The only server code is the assistant function.
+
+## Benchmarks
+
+Measured on the production build in headless Chromium (`npm run bench`, desktop, 1440 × 900):
+
+| Measure | Result |
+|---|---|
+| First contentful paint | 300 ms |
+| Largest contentful paint | 376 ms |
+| DOM ready | 112 ms |
+| Tab switch (click → painted) | 23 ms |
+| Open Evidence tab (loaded on demand, pre-fetched) | 90 ms |
+| Open a ghat's proof panel | 3 ms |
+| First-load JavaScript (gzip) | 101 kB |
+| JavaScript loaded after first paint (gzip) | 137 kB |
+| CSS (gzip) | 10 kB |
+| Assistant answer (Groq, measured end to end) | about 1 s |
+
+Click feedback is CSS transform-only, so a press answers on the next frame; there is no smooth-scroll library and no backdrop blur.
+
+| Accuracy check | Result |
+|---|---|
+| Problem-statement figures reproduced at build | 18 / 18 |
+| Printed values found on their cited PDF page | 1,467 / 1,467 |
+| Unit and integration tests | 60 / 60 |
+| Hand-worked scores in tests | Bairagarh oxygen 67.3 · Hathaikheda total 22.3 · Bairagarh before/after 3.75 → 1.58 |
+
 ## How to run it
 
 1. Install [Node.js](https://nodejs.org) 22.12 or later
@@ -100,6 +187,7 @@ No server, database, login or API key. The production build (`npm run build` →
 | `npm run verify` | Opens the three MPPCB PDFs and confirms every printed value is on its cited page |
 | `npm test` | 60 tests: flag handling, limits, scoring (with hand-worked examples), robustness, statewide cleaning, allocator, field entries, brief |
 | `npm run build` | Data + type check + production build |
+| `npm run bench` | Benchmarks the production build (paint, tab switch, panel open, bundle size) |
 | `npm run pdf` | Regenerates the PDFs in `public/pdfs/` with headless Chromium (run after any data or template change; needs `npx playwright install chromium` once) |
 
 Useful links: `?lang=hi` opens in Hindi · `?nointro` skips the opening animation · `#ghats/BAI` opens one ghat · `#design` shows the design system.
@@ -141,11 +229,11 @@ Result (CPCB Class B, default weights):
 - Resource allocator, field sampling sheets, allocation order, 20 October reading entry with validation, CSV export and live re-ranking
 - PDFs: bilingual brief, ghat reports (English and Hindi), method and limits (English and Hindi); WhatsApp message with copy and share
 - Government-style top bar (skip link, text size, language), keyboard navigation, reduced-motion support
-- AI assistant on the deployed site once `ANTHROPIC_API_KEY` is set in Vercel
+- AI assistant on the deployed site once `GROQ_API_KEY` is set in Vercel
 - Report dashboard: any report, language and ghat selection with a live A4 preview
 
 **Doesn't, or only partly**
-- **The AI assistant needs the API key in Vercel** and an internet connection; AI answers can be wrong, so the panel tells officers to check numbers with the Verify links.
+- **The AI assistant needs `GROQ_API_KEY` in Vercel** and an internet connection. On Groq's free tier it answers a few questions a minute, then asks the officer to wait. AI answers can be wrong: numbers that don't match the data are flagged, and the panel points to the proof.
 - **BMC logo is not included.** No openly licensed copy was found, and downloading it from the BMC website would break the event's rule on government portals. Drop the official file at `src/assets/brand/bmc-logo.svg` (or `.png`) and it appears in the header and on every PDF.
 - **20 October readings stay in one browser.** There is no server, by design, so readings are not shared between officers; use the CSV export.
 - **Re-ranking with 20 October readings updates the scores and order only.** Blind-spot flags and the PDF brief still describe the 2023–2025 reports.
@@ -185,13 +273,13 @@ All data comes from the official participant pack ([Laaaaksh/bhopal-impact-lab-2
 
 ## Built with
 
-TypeScript · React · Vite · Tailwind CSS · Motion (animation) · Anthropic SDK (assistant) · d3-scale (chart maths, all charts are hand-built SVG) · Zod (row checks) · PapaParse · pdf.js (receipt check) · Playwright (PDFs) · Vitest. Fonts: Yatra One (the name), Inter, Noto Sans Devanagari, all bundled for offline use. Built with Claude Code.
+TypeScript · React · Vite · Tailwind CSS · Motion (animation) · Groq (assistant, `openai/gpt-oss-120b`) · d3-scale (chart maths, all charts are hand-built SVG) · Zod (row checks) · PapaParse · pdf.js (receipt check) · Playwright (PDFs) · Vitest. Fonts: Yatra One (the name), Inter, Noto Sans Devanagari, all bundled for offline use. Built with Claude Code.
 
 ```
 data/                 official CSVs, unchanged
 public/reports/       the three MPPCB report PDFs (Verify links open these)
 public/pdfs/          generated PDFs (npm run pdf)
-api/chat.ts           AI assistant (Vercel function; key from ANTHROPIC_API_KEY)
+api/chat.ts           AI assistant (Vercel function, Groq; key from GROQ_API_KEY)
 scripts/              build-data (checks + scoring), verify-receipts, build-pdfs, screenshot
 src/core/             data rules, scoring, robustness, statewide, allocator, field entries (no UI; tested)
 src/components/       design system, charts, views, print templates
